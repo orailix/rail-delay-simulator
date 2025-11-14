@@ -1,0 +1,12 @@
+matplotlib==3.10.3
+networkx==3.4.2
+numpy==2.2.2
+pandas==2.2.3
+psutil==7.0.0
+pytorch_lightning==2.5.1.post0
+Requests==2.32.3
+scikit_learn==1.6.1
+scipy==1.15.3
+torch==2.7.0
+tqdm==4.67.1
+xgboost==3.0.2

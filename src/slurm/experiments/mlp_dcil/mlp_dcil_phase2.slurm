@@ -1,0 +1,72 @@
+#!/bin/bash
+#SBATCH --array=0-19
+#YOUR SBATCH ARGS
+# ...
+#YOUR SBATCH ARGS
+
+source ~/.bashrc
+conda activate rail-delay-pred
+
+EXPERIMENT_NAME='tuning_phase_2'
+DATA_PATH='data/dataset'
+ITINERARIES_PATH='data/itineraries'
+EVAL_CONFIG_PATH='data/eval_configs/cfg.pkl'
+DROPOUT=0.0
+ACTIVATION='ReLU'
+
+TRAJ_LEN=10
+SIM_BATCH_SIZE=100
+BUFFER_CAPACITY=30000
+NEW_SAMPLES_PER_EPOCH=10000
+
+NB_EPOCHS=1500
+ALPHA=0.5
+BETA=2.0
+
+WEIGHT_DECAY=0.001
+
+CHECK_VAL_EVERY_N_EPOCH=10
+NUM_WORKERS=10
+MIN_EPOCHS=500
+PATIENCE=50
+VAL_RATIO=0.003
+
+LR_ARR=(0.0003 0.0001 0.00005 0.00003)
+BATCH_SIZE_ARR=(16 32 64 128 256)
+
+HIDDEN_DIMS=(256 512 1024 512 256)
+
+
+IDX=${SLURM_ARRAY_TASK_ID}
+NUM_BS=${#BATCH_SIZE_ARR[@]}
+
+LR_IDX=$((IDX / NUM_BS))
+BS_IDX=$((IDX % NUM_BS))
+
+LR=${LR_ARR[$LR_IDX]}
+BATCH_SIZE=${BATCH_SIZE_ARR[$BS_IDX]}
+
+srun python3 -u -m src.algorithms.dcil.mlp_dcil \
+    "$EXPERIMENT_NAME" \
+    "$DATA_PATH" \
+    "$ITINERARIES_PATH" \
+    "$EVAL_CONFIG_PATH" \
+    "$DROPOUT" \
+    "$ACTIVATION" \
+    "$TRAJ_LEN" \
+    "$SIM_BATCH_SIZE" \
+    "$BUFFER_CAPACITY" \
+    "$NEW_SAMPLES_PER_EPOCH" \
+    "$NB_EPOCHS" \
+    "$ALPHA" \
+    "$BETA" \
+    "$BATCH_SIZE" \
+    "$LR" \
+    "$WEIGHT_DECAY" \
+    "$CHECK_VAL_EVERY_N_EPOCH" \
+    "$NUM_WORKERS" \
+    "$MIN_EPOCHS" \
+    "$PATIENCE" \
+    --hidden-dims "${HIDDEN_DIMS[@]}" \
+    --val-ratio $VAL_RATIO \
+    --use-local-features
