@@ -4,7 +4,7 @@
 
 This repository accompanies “Simulation-Driven Railway Delay Prediction: An Imitation Learning Approach” and contains the full data-engineering, simulation, and training stack described in the paper. It ingests three years of INFRABEL operational logs (January 2022 → December 2024), enriches them with station/line embeddings, builds snapshot datasets (≈255 k snapshots, 51 M train instances) via `src/data/*.py`, and pre-computes itineraries plus evaluation configs for fast Monte‑Carlo replay.
 
-On top of these artifacts, `src/environment/simulation.py` provides a stochastic network simulator that can roll out multiple sampled trajectories of different snapshots in a GPU-paralellized fashion. Policies in `src/algorithms/{regression,bc,dcil}/` cover classic regressors, behavioural cloning, and the paper’s Drift‑Corrected Imitation Learning (DCIL), instantiated with Transformer, MLP, and XGBoost backbones (`src/models/`). The scripts under `src/slurm` and `src/scripts` reproduce every experiment, analysis plot, and table in the paper, so the paper is fully reproducible end‑to‑end.
+On top of these artifacts, `src/environment/simulation.py` provides a stochastic network simulator that can roll out multiple sampled trajectories of different snapshots in a GPU-parallelized fashion. Policies in `src/algorithms/{regression,bc,dcil}/` cover classic regressors, behavioural cloning, and the paper’s Drift‑Corrected Imitation Learning (DCIL), instantiated with Transformer, MLP, and XGBoost backbones (`src/models/`). The scripts under `src/slurm` and `src/scripts` reproduce every experiment, analysis plot, and table in the paper: the paper is fully reproducible end‑to‑end.
 
 
 ## Table of Contents
