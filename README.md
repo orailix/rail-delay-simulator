@@ -39,7 +39,7 @@ pip install -r requirements.txt
 ## Data Preparation
 
 ### Download raw data:
-Run the following to fetch the raw data for the period December 2021 through Jenuary 2025 (having the month before and after is necessary for simulation):
+Run the following to fetch the raw data for the period December 2021 through January 2025 (having the month before and after is necessary for simulation):
 
 ```bash
 python -m src.data.download_raw_data 'data/raw' 2021 12 2025 1
