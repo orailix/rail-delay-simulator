@@ -2,10 +2,15 @@
 
 ## Overview
 
-This repository accompanies “Simulation-Driven Railway Delay Prediction: An Imitation Learning Approach” and contains the full data-engineering, simulation, and training stack described in the paper. It ingests three years of INFRABEL operational logs (January 2022 → December 2024), enriches them with station/line embeddings, builds snapshot datasets (≈255 k snapshots, 51 M train instances) via `src/data/*.py`, and pre-computes itineraries plus evaluation configs for fast Monte‑Carlo replay.
+This repository accompanies “Simulation-Driven Railway Delay Prediction: An Imitation Learning Approach” and contains the full data-engineering, simulation logic, and model training stack described in the paper.
 
-On top of these artifacts, `src/environment/simulation.py` provides a stochastic network simulator that can roll out multiple sampled trajectories of different snapshots in a GPU-paralellized fashion. Policies in `src/algorithms/{regression,bc,dcil}/` cover classic regressors, behavioural cloning, and the paper’s Drift‑Corrected Imitation Learning (DCIL), instantiated with Transformer, MLP, and XGBoost backbones (`src/models/`). The scripts under `src/slurm` and `src/scripts` reproduce every experiment, analysis plot, and table in the paper, so the paper is fully reproducible end‑to‑end.
+- `src/data/*.py` implements the data pipeline: it downloads and processes raw operational logs into ML-ready datasets and builds itinerary files to improve simulation performance.
 
+- `src/environment/simulation.py` defines a stochastic network simulator that rolls out multiple sampled trajectories across snapshots in a GPU-parallelized fashion.
+
+- Policies in `src/algorithms/{regression,bc,dcil}/` cover classic regressors, behavioral cloning, and the paper’s Drift-Corrected Imitation Learning (DCIL), instantiated with Transformer, MLP, and XGBoost backbones (see `src/models/`).
+
+- The scripts in `src/slurm/` and `src/scripts/` reproduce every experiment, analysis plot, and table in the paper, making the entire workflow fully reproducible end-to-end.
 
 ## Table of Contents
 - [Installation](#installation)
@@ -34,7 +39,7 @@ pip install -r requirements.txt
 ## Data Preparation
 
 ### Download raw data:
-Run the following to fetch the raw data for the period January 2021 through December 2025 (having the month before and after is necessary for simulation):
+Run the following to fetch the raw data for the period December 2021 through Jenuary 2025 (having the month before and after is necessary for simulation):
 
 ```bash
 python -m src.data.download_raw_data 'data/raw' 2021 12 2025 1
