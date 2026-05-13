@@ -154,7 +154,7 @@ class GAIL(pl.LightningModule):
         """
         pass
 
-def on_validation_epoch_start(self) -> None:
+    def on_validation_epoch_start(self) -> None:
         """
         Initialize validation metrics at epoch start.
         """
@@ -362,16 +362,16 @@ def on_validation_epoch_start(self) -> None:
         self.trainer.logger.log_epoch_metrics(self.trainer, self)
 
     def evaluate_disc(self, max_batches: int = None) -> float:
-    """
-    Evaluate the discriminator on policy and expert batches.
+        """
+        Evaluate the discriminator on policy and expert batches.
 
-    Args:
-        max_batches (int, optional): Maximum number of batches to evaluate.
-            If None, use all batches. Default is None.
+        Args:
+            max_batches (int, optional): Maximum number of batches to evaluate.
+                If None, use all batches. Default is None.
 
-    Returns:
-        float: Average discriminator loss over the evaluated batches.
-    """
+        Returns:
+            float: Average discriminator loss over the evaluated batches.
+        """
         self.discriminator.eval()
     
         losses_pi, losses_exp = [], []
