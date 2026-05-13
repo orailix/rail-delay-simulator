@@ -13,15 +13,22 @@ class MLP(nn.Module):
             activation (str): Name of the activation function from torch.nn (e.g., "ReLU").
             dropout (float): Dropout probability (0.0–1.0).
     """
-    def __init__(self, input_dim: int, d_model: int, nhead: int, dim_feedforward: int,
-                 dropout: float, activation: str, num_layers: int, num_classes: int) -> None:
+    def __init__(self, input_dim: int, hidden_dims: list, output_dim: int, activation: str, dropout: float) -> None:
         super().__init__()
         layers = []
         dims = [input_dim] + hidden_dims
 
+        activations = {
+            "relu": nn.ReLU,
+            "gelu": nn.GELU,
+            "tanh": nn.Tanh,
+        }
+        act_cls = activations.get(activation.lower())
+        if act_cls is None:
+            raise ValueError(f"Unknown activation: {activation}")
+
         for in_d, out_d in zip(dims[:-1], dims[1:]):
             layers.append(nn.Linear(in_d, out_d))
-            act_cls = getattr(nn, activation)
             layers.append(act_cls())
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))

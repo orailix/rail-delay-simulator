@@ -551,8 +551,9 @@ class DataModule(pl.LightningDataModule):
             # maybe cut the batch here when possible to avoid additional computing ?
             initial_states = [el[0] for el in batch]
             metadatas = [el[1] for el in batch]
-            states_time = [metadatas[i][0,0] for i in range(self.sim_config['sim_batch_size'])]
-            initial_states_metadata = [metadatas[i][:,1:] for i in range(self.sim_config['sim_batch_size'])]
+            batch_size = len(metadatas)
+            states_time = [metadatas[i][0,0] for i in range(batch_size)]
+            initial_states_metadata = [metadatas[i][:,1:] for i in range(batch_size)]
         
             with torch.no_grad():
                 samples = sim.get_samples_dcil(initial_states, initial_states_metadata, states_time, self.sim_config['traj_len_train'], 1,'sampling', False, 

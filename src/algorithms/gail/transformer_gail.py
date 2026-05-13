@@ -22,7 +22,7 @@ from collections import deque
 from functools import partial
 
 from src.utils.logger import CustomCSVLogger, MetricsLoggingCallback
-from src.utils.utils import load_pickle, save_pickle, get_subdir_path, get_dates, setup_run_folder
+from src.utils.utils import load_pickle, save_pickle, get_subdir_path, get_dates, setup_run_folder, save_results
 from src.environment.simulation import Simulator, load_itineraries_from_dates
 from src.utils.metrics import simulate_and_compute_mae
 from src.utils.weightssaver import WeightSaver
@@ -1143,8 +1143,9 @@ class DataModule(pl.LightningDataModule):
             # maybe cut the batch here when needed to avoid additional computing ?
             initial_states = [el[0] for el in batch]
             metadatas = [el[1] for el in batch]
-            states_time = [metadatas[i][0,0] for i in range(self.sim_config['sim_batch_size'])]
-            initial_states_metadata = [metadatas[i][:,1:] for i in range(self.sim_config['sim_batch_size'])]
+            batch_size = len(metadatas)
+            states_time = [metadatas[i][0,0] for i in range(batch_size)]
+            initial_states_metadata = [metadatas[i][:,1:] for i in range(batch_size)]
         
             with torch.no_grad():
                 states_list, one_hot_actions_list, prob_list, ids_list, final_states, final_ids, valid_actions_mask_list = sim.get_samples_gail(initial_states, initial_states_metadata, states_time, self.sim_config['traj_len'], 1,'sampling', False, itineraries = self.sim_config['itineraries'])
@@ -1247,7 +1248,7 @@ def main():
     if args.bc_pretrained:
         pre_trained_path = "Runs/sim_class/run_input_dim234_d_model512_nhead4_dim_feedforward2048_dropout0.2_activationrelu_num_layers4_num_classes3"
         state_dict = torch.load(os.path.join(pre_trained_path,"checkpoints", f"model_epoch_1.pt"), map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu')) # put whatever pretrained checkpoint you want
-        gail.policy.load_state_dict(state_dict)
+        model.policy.load_state_dict(state_dict)
     
     run_path, checkpoints_path = setup_run_folder(args, model_config, 'tr_gail')
     
@@ -1283,6 +1284,7 @@ def main():
         devices=1,
         strategy="auto",
         accelerator="gpu",
+        min_epochs=args.min_epochs,
         max_epochs=args.nb_epochs,
         logger=logger,
         check_val_every_n_epoch =args.check_val_every_n_epoch,
@@ -1296,6 +1298,7 @@ def main():
     if args.eval_test:
         trainer.test(model, datamodule=data_module)
         print(model.test_results)
+        save_results(run_path, model.test_results,eval_config)
 
 if __name__ == "__main__":
     main()

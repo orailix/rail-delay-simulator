@@ -172,7 +172,7 @@ python -m src.scripts.create_tables
 Run this to reproduce the uncertainty quantification plot (specifiy your run path and checkpoint number)
 
 ```bash
-python -m src.script.uncert_quant "YOUR_RUN_PATH" "YOUR_CHECKPOINT_NUMBER" 'data/dataset' 'data/itineraries' 'data/eval_configs/cfg.pkl' 'figs/uncertainty_quantification.svg' 1.0
+python -m src.scripts.uncert_quant "YOUR_RUN_PATH" "YOUR_CHECKPOINT_NUMBER" 'data/dataset' 'data/itineraries' 'data/eval_configs/cfg.pkl' 'figs/uncertainty_quantification.svg' 1.0
 ```
 
 ## Results

@@ -3,6 +3,7 @@ import os
 import re
 import argparse
 import pathlib
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -421,7 +422,7 @@ def save_data_point(i: int, x: torch.Tensor, y_d: torch.Tensor, y_a: torch.Tenso
     for d, prefix in zip(data, prefixes):
         file_name = f'{prefix}_{i}.pt'
         folder_path = os.path.join(base_path, prefix)
-        file_path = get_subdir_path(file_name, folder_path, makes=True)
+        file_path = get_subdir_path(file_name, folder_path)
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         torch.save(d, file_path)
 

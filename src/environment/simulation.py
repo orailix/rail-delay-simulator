@@ -1104,8 +1104,8 @@ class Simulator:
         train_remove_schedules = []
 
         dates = {date for state_time in states_time for date in get_possible_dates(state_time)}
-        if itineraries == None: # if we haven't pre-loaded the itineraries
-            itineraries = load_itineraries_from_dates(dates)
+        if itineraries is None:
+            raise ValueError("itineraries must be preloaded and passed to the simulator.")
 
         trains_to_add, appearance_times, schedules = self.get_trains_to_add(states_time, itineraries, dates, nb_steps)
 
