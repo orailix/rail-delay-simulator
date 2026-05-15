@@ -360,7 +360,7 @@ def expand_and_add_actions_group(group: pd.DataFrame, deltat: int, idle_time_end
         return pd.DataFrame(columns=expanded_group.columns), 2
     
 
-def expand_and_add_actions(df: pd.DataFrame, deltat: int, idle_time_end: int) -> pd.DataFrame:
+def expand_and_add_actions(df: pd.DataFrame, deltat: int, idle_time_end: int, sampled_state_times: set) -> pd.DataFrame:
     """
     Expand all train groups to fixed time grids (1 row every deltat seconds) and add action labels.
 
@@ -368,6 +368,7 @@ def expand_and_add_actions(df: pd.DataFrame, deltat: int, idle_time_end: int) ->
         df (pandas.DataFrame): Input DataFrame containing train events grouped by TRAIN_NO and DATDEP.
         deltat (int): Time-step size in seconds for the expansion grid.
         idle_time_end (int): Minutes to extend beyond the last REAL_TIME_NUM when building the grid.
+        sampled_state_times (set): STATE_TIME values to keep.
 
     Returns:
         pandas.DataFrame: Concatenated expanded groups with 'STATE_TIME' and 'action' columns.
@@ -382,26 +383,22 @@ def expand_and_add_actions(df: pd.DataFrame, deltat: int, idle_time_end: int) ->
         result, code = expand_and_add_actions_group(group, deltat, idle_time_end)
         codes[str(code)] += 1
         pbar.set_postfix(codes)
+        result = result[result['STATE_TIME'].isin(sampled_state_times)]
         if not result.empty:
             new_rows.append(result)
     pbar.close()
 
     return pd.concat(new_rows, ignore_index=True)
 
-def filter_and_sample(df: pd.DataFrame, current_year: int, current_month: int, sample_ratio: float) -> pd.DataFrame:
+def sample_state_times(df: pd.DataFrame, current_year: int, current_month: int, sample_ratio: float, deltat: int, idle_time_end: int) -> set:
     """
-    Filter states to the given month and randomly subsample them.
-
-    Args:
-        df (pandas.DataFrame): DataFrame with a 'STATE_TIME' column of integer timestamps.
-        current_year (int): Year to filter.
-        current_month (int): Month to filter.
-        sample_ratio (float): Fraction of rows to sample from the filtered set.
-
-    Returns:
-        pandas.DataFrame: Subsampled DataFrame restricted to the given month.
+    Sample month-local STATE_TIME values before materializing expanded train rows.
     """
-    possible_values = df.STATE_TIME.unique()
+    time_ranges = [
+        np.arange(group['REAL_TIME_NUM'].min(), group['REAL_TIME_NUM'].max() + (60 * idle_time_end), deltat)
+        for _, group in df.groupby(['TRAIN_NO', 'DATDEP'])
+    ]
+    possible_values = np.unique(np.concatenate(time_ranges))
     reference_date = pd.Timestamp("2012-01-01")
     start_date = pd.Timestamp(f"{current_year}-{current_month}-01 00:00:00")
     last_day = calendar.monthrange(int(current_year), int(current_month))[1]
@@ -410,11 +407,9 @@ def filter_and_sample(df: pd.DataFrame, current_year: int, current_month: int, s
     start_state_time = int((start_date - reference_date) / pd.Timedelta('1s'))
     end_state_time = int((end_date - reference_date) / pd.Timedelta('1s'))
 
-    # filter STATE_TIME rows not in the current month
     filtered_values = [v for v in possible_values if start_state_time <= v <= end_state_time]
     num_samples = int(len(filtered_values) * sample_ratio)
-    sampled_values = random.sample(filtered_values, num_samples)
-    return df[df['STATE_TIME'].isin(sampled_values)]
+    return set(random.sample(filtered_values, num_samples))
 
 def convert_num_to_delta(df: pd.DataFrame, nb_past_stations: int, nb_future_stations: int) -> pd.DataFrame:
     """
@@ -544,8 +539,8 @@ def process_month(folder_path: str, year: int, month: int, deltat: int, nb_past_
     df = get_numerical_times(df, deltat)
     df = set_past_and_future_stations(df, nb_past_stations, nb_future_stations, idle_time_beggining, idle_time_end)
     df = convert_list_to_columns(df, nb_past_stations, nb_future_stations)
-    df = expand_and_add_actions(df, deltat, idle_time_end)
-    df = filter_and_sample(df, year, month, sample_ratio)
+    sampled_state_times = sample_state_times(df, year, month, sample_ratio, deltat, idle_time_end)
+    df = expand_and_add_actions(df, deltat, idle_time_end, sampled_state_times)
     df = convert_num_to_delta(df, nb_past_stations, nb_future_stations)
     df = create_time_features(df)
 

@@ -249,6 +249,7 @@ class TensorDataset(Dataset):
         Returns:
             int: Number of samples.
         """
+        return self.len
 
     def __getitem__(self, idx: int) -> tuple:
         """
