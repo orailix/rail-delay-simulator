@@ -50,6 +50,10 @@ class Transformer(nn.Module):
         
         if padding_mask is not None:
             src_key_padding_mask = padding_mask.bool()
+            fully_masked = src_key_padding_mask.all(dim=1)
+            if fully_masked.any():
+                src_key_padding_mask = src_key_padding_mask.clone()
+                src_key_padding_mask[fully_masked] = False
         else:
             src_key_padding_mask = torch.zeros(x.size(0), x.size(1), dtype=torch.bool, device=x.device)
         
